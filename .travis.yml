@@ -20,3 +20,15 @@ install:
 
 script:
 - npm run test -- --no-progress --watch=false --browsers=ChromeHeadless
+- ng build --prod
+
+before_deploy:
+- export DIST=$PWD/dist/
+- docker build -t kromkrom/fizzbuzzui --build-arg DIST=$DIST .
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+deploy:
+  provider: script
+  script: docker push kromkrom/fizzbuzzui
+  on:
+    branch: master
