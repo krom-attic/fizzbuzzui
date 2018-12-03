@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {FizzBuzzService} from './fizz-buzz.service';
 import {Observable, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, switchMap} from 'rxjs/operators';
-import {FizzBuzzResult} from './api/FizzBuzzResult';
+import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
+import {StringValue} from './StringValue';
 
 const INPUT_PATTERN = '^([0-9]+ ?)+$';
 
@@ -12,19 +12,20 @@ const INPUT_PATTERN = '^([0-9]+ ?)+$';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  fizzBuzzed$: Observable<string[]>;
+  fizzBuzzed: string[];
   private numbersStrings = new Subject<number[]>();
 
   constructor(private fizzBuzzService: FizzBuzzService) {
   }
 
   ngOnInit(): void {
-    this.fizzBuzzed$ = this.numbersStrings.pipe(
-      debounceTime(500),
-      distinctUntilChanged(),
-      switchMap((value: number[]) => this.doFizzBuzz(value)),
-      map((value: FizzBuzzResult) => value.result)
-    );
+    this.numbersStrings
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap((numbersInput: number[]) => this.doFizzBuzz(numbersInput)))
+      .subscribe(
+        results => this.fizzBuzzed = results.map(stringValue => stringValue.value));
   }
 
   processInput(numberString: string) {
@@ -36,7 +37,7 @@ export class AppComponent implements OnInit {
     this.numbersStrings.next(numbers);
   }
 
-  private doFizzBuzz(numbers: number[]): Observable<FizzBuzzResult> {
+  private doFizzBuzz(numbers: number[]): Observable<StringValue[]> {
     return this.fizzBuzzService.doFizzBuzz(numbers);
   }
 }
